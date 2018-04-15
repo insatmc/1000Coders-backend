@@ -66,7 +66,7 @@ router.post("/register", function(req, res) {
     function(err, user) {
       if (err)
         return res
-          .status(200)
+          .status(400)
           .send("There was a problem registering the user`." + err);
 
       // if user is registered without errors
