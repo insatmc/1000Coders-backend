@@ -1,0 +1,1 @@
+mongoimport --authenticationDatabase admin -u root -p root -d thousandcoders -c examples --type json --file examples.json  --jsonArray
