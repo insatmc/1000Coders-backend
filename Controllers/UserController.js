@@ -4,12 +4,54 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const moment = require("moment");
 
+const multer = require("multer");
+const uuidv4 = require("uuid/v4");
+const path = require("path");
+
 const VerifyToken = require("../Helpers/VerifyToken");
 
 router.use(bodyParser.urlencoded({ extended: true }));
 const User = require("../Models/User");
 
-router.get("/:id", function(req, res) {
+router.post("/upload", VerifyToken, (req, res) => {
+  let degreeFile = "";
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, "./Assets/Uploads");
+    },
+    filename: (req, file, cb) => {
+      const newFilename = `${uuidv4()}${path.extname(file.originalname)}`;
+      degreeFile = newFilename;
+      cb(null, newFilename);
+    }
+  });
+
+  const limits = { fileSize: 1024 * 1024 * 2 };
+
+  const upload = multer({ limits, storage });
+
+  upload.single("degreeFile")(req, res, err => {
+    if (err && err.code === "LIMIT_FILE_SIZE") {
+      res.send({
+        success: false,
+        message: "Fichier volumineuxx, Taille Max 2Mo"
+      });
+    } else {
+      User.findByIdAndUpdate(
+        req.body.id,
+        {$set: { "education.degreeFile": degreeFile }},
+        (err, user) => {
+          if (err) console.log(err);
+          console.log(user);
+        }
+      );
+
+      res.send({ success: true });
+    }
+  });
+});
+
+router.get("/:id", VerifyToken, function(req, res) {
   User.findById(req.params.id, function(err, user) {
     if (err)
       return res.status(500).send("There was a problem finding the user.");
@@ -68,17 +110,6 @@ router.get("/start/:id", VerifyToken, (req, res) => {
     }
   });
 });
-
-enumurateCorrectAnswers = questions => {
-  return questions
-    .map((question, i) =>
-      question.choices.filter(
-        (choice, x) =>
-          choice.isCorrect === choice.isSelected && choice.isSelected
-      )
-    )
-    .filter((answer, i) => answer.length !== 0);
-};
 
 router.post("/submit", VerifyToken, (req, res) => {
   User.findById(req.body.id, (err, user) => {

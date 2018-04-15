@@ -27,7 +27,7 @@ const User = mongoose.Schema(
       degree: {
         type: String,
         enum: ["Licence", "Master", "Ing"],
-        default: "Licence"
+        default: "Licence"	
       },
       degreeFile: { type: String },
       uni: { type: String },
